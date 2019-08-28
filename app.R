@@ -4,6 +4,7 @@ library(xml2)
 library(tidyverse)
 library(DT)
 library(plotly)
+library(shinythemes)
 
 options(shiny.maxRequestSize=30*1024^2) 
 
@@ -17,6 +18,7 @@ source("Targetlynx_functions.r", local = TRUE)
 
 # Define UI for application that draws a histogram
 ui <- navbarPage("Masslynx quantification explorer",
+                 theme = shinytheme("spacelab"),
                  tabPanel("File input & summary",
                           fluidPage(sidebarLayout(
                               sidebarPanel(
@@ -28,10 +30,10 @@ ui <- navbarPage("Masslynx quantification explorer",
                               mainPanel(
                                   DT::dataTableOutput("table_summary"),
                                   plotOutput("plot1")
+                                  )
                               )
-                          )
-                          )
-                 ),
+                              )
+                          ),
                  tabPanel("Raw data table",
                           fluidPage(sidebarLayout(
                               sidebarPanel(
