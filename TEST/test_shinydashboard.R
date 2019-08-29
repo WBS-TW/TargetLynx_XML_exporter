@@ -25,12 +25,18 @@ sidebar <- dashboardSidebar(
     menuItem("Filtering", tabName = "Filter", icon = icon("filter"),
              checkboxInput("CheckBlanks", "Exclude blanks"),
              checkboxInput("CheckStandards", "Exclude standards"),
-             numericInput("decimal", "Number of decimals", value = 2)
+             numericInput("Decimal", "Number of decimals", value = 2)
     ),
-    menuItem("Sample summary", tabName = "summary", icon = icon("chart-bar")),
-    menuItem("Raw data table", tabName = "rawdata", icon = icon("table")),
-    menuItem("Recoveries", tabName = "recoveries", icon = icon("wine-glass-alt"))
+    hr(),
+    menuItem("Sample summary", tabName = "Summary", icon = icon("chart-bar")),
+    checkboxInput("CheckSummaryPlot", "Show summary plots"),
+    hr(),
+    menuItem("Recoveries", tabName = "Recovery", icon = icon("wine-glass-alt")),
+    checkboxInput("CheckRecoveryPlot", "Show recovery plots"),
+    hr(),
+    menuItem("Raw data table", tabName = "Rawdata", icon = icon("table"))
   ),
+  hr(),
   downloadButton("dl", "Save as xlsx")
 )
 
@@ -38,29 +44,31 @@ sidebar <- dashboardSidebar(
 
 body <- dashboardBody(
   tabItems(
-    # First tab content
-    tabItem(tabName = "summary",
+    # Summary tab content
+    tabItem(tabName = "Summary",
             fluidRow(
-              DT::dataTableOutput("table_summary")
+              DT::dataTableOutput("SummaryTable")
             ),
             fluidRow(
-              plotOutput("plot1", height = 700)
+              uiOutput("SummaryPlot")
             )
     ),
     
-    # Second tab content
-    tabItem(tabName = "rawdata",
-            fluidRow(
-              DT::dataTableOutput("table_raw")
-            )
-    ),
-    tabItem(tabName = "recoveries",
+    # Recovery tab content
+    tabItem(tabName = "Recovery",
             fluidRow(
               DT::dataTableOutput("table_recoveries"),
               fluidRow(
-                plotOutput("plot2", height = 700)
+                uiOutput("RecoveryPlot")
               )
-            ))
+            )),
+    
+    # Rawdata tab content
+    tabItem(tabName = "Rawdata",
+            fluidRow(
+              DT::dataTableOutput("table_raw")
+            )
+    )
   )
 )
 
@@ -79,7 +87,7 @@ server <- function(input, output) {
   
   result_amount <- reactive({
     input_data <- data()
-    t <- get_amounts(data = input_data, decimal = input$decimal, blanks = input$CheckBlanks, standards = input$CheckStandards)
+    t <- get_amounts(data = input_data, decimal = input$Decimal, blanks = input$CheckBlanks, standards = input$CheckStandards)
   })
   result_recovery <- reactive({
     input_recovery <- data()
@@ -99,7 +107,7 @@ server <- function(input, output) {
       )
     })
     
-    output$table_summary <- DT::renderDataTable({
+    output$SummaryTable <- DT::renderDataTable({
       summary_tab <- result_amount() %>%
         group_by(sample_type) %>%
         summarise_if(is.numeric, mean)
@@ -130,13 +138,25 @@ server <- function(input, output) {
       
     })
     
-    output$plot1 <- renderPlot({
+    # Plots
+    
+    output$SummaryPlot <- renderUI(
+      if (input$CheckSummaryPlot) {
+        plotOutput("UISummaryPlot", height = 700)
+      })
+    output$UISummaryPlot <- renderPlot({
       plot_summary(result_amount())
     })
     
-    output$plot2 <- renderPlot({
+    output$RecoveryPlot <- renderUI(
+      if (input$CheckRecoveryPlot) {
+        plotOutput("UIRecoveryPlot", height = 700)
+      })
+    output$UIRecoveryPlot <- renderPlot({
       plot_summary(result_recovery())
     })
+    
+    
     
     
     
