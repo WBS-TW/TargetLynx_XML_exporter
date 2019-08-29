@@ -80,7 +80,20 @@ sample_recovery <- for (i in 1:length_samples) {
   
 }
 
+rec_color <- sapply(table_recovery, is.numeric)
 
+DT::datatable(table_recovery,
+              extensions = 'FixedColumns',
+              options = list(
+                pageLength = 20,
+                dom = 't',
+                scrollX = TRUE,
+                fixedColumns = list(leftColumns = 3))
+              ) %>%
+                formatStyle(names(table_recovery[rec_color]),
+                            color = styleInterval(c(0, 25, 50, 75, 125, 150), 
+                                                  c("red", "red", "blue", "black", "black", "blue", "red"))
+                )
 
 
 
@@ -112,3 +125,23 @@ test2 <- table_recovery %>%
   geom_point(aes(y = value)) +
   theme_bw()
 test2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

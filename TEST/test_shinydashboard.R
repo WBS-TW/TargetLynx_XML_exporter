@@ -7,7 +7,7 @@ library(DT)
 library(plotly)
 
 options(shiny.maxRequestSize=30*1024^2) 
-
+options(shiny.reactlog=TRUE) 
 source("D:/R_projects/TargetLynx_XML_exporter/Targetlynx_functions.r", local = TRUE)
 
 
@@ -28,7 +28,8 @@ sidebar <- dashboardSidebar(
              numericInput("decimal", "Number of decimals", value = 2)
     ),
     menuItem("Sample summary", tabName = "summary", icon = icon("chart-bar")),
-    menuItem("Raw data table", tabName = "rawdata", icon = icon("table"))
+    menuItem("Raw data table", tabName = "rawdata", icon = icon("table")),
+    menuItem("Recoveries", tabName = "recoveries", icon = icon("wine-glass-alt"))
   ),
   downloadButton("dl", "Save as xlsx")
 )
@@ -50,9 +51,16 @@ body <- dashboardBody(
     # Second tab content
     tabItem(tabName = "rawdata",
             fluidRow(
-              DT::dataTableOutput("Table1")
+              DT::dataTableOutput("table_raw")
             )
-    )
+    ),
+    tabItem(tabName = "recoveries",
+            fluidRow(
+              DT::dataTableOutput("table_recoveries"),
+              fluidRow(
+                plotOutput("plot2", height = 700)
+              )
+            ))
   )
 )
 
@@ -73,12 +81,21 @@ server <- function(input, output) {
     input_data <- data()
     t <- get_amounts(data = input_data, decimal = input$decimal, blanks = input$blanks, standards = input$standards)
   })
+  result_recovery <- reactive({
+    input_recovery <- data()
+    r <- get_recovery(data = input_recovery, blanks = input$blanks, standards = input$standards)
+  })
   
   observeEvent(input$click_file, {
-    output$Table1 <- DT::renderDataTable({
+    
+    output$table_raw <- DT::renderDataTable({
       dt1 <- DT::datatable(result_amount(),
+                           extensions = 'FixedColumns',
                            options = list(
-                             pageLength = 50)
+                             pageLength = 20,
+                             dom = 't',
+                             scrollX = TRUE,
+                             fixedColumns = list(leftColumns = 3))
       )
     })
     
@@ -87,14 +104,40 @@ server <- function(input, output) {
         group_by(sample_type) %>%
         summarise_if(is.numeric, mean)
       DT::datatable(summary_tab,
+                    extensions = 'FixedColumns',
                     options = list(
-                      pageLength = 25)
+                      pageLength = 20,
+                      dom = 't',
+                      scrollX = TRUE,
+                      fixedColumns = TRUE)
       )
     })
+    
+    
+   output$table_recoveries <- DT::renderDataTable({
+     rec_color <- sapply(result_recovery(), is.numeric)
+     
+     datatable(result_recovery(),
+               extensions = 'FixedColumns',
+               options = list(
+                 pageLength = 20,
+                 dom = 't',
+                 scrollX = TRUE,
+                 fixedColumns = list(leftColumns = 3))) %>%
+       formatStyle(names(result_recovery()[rec_color]), 
+                   color = styleInterval(c(0, 25, 50, 75, 125, 150),
+                                         c("red", "red", "blue", "black", "black", "blue", "red")))
+      
+      })
     
     output$plot1 <- renderPlot({
       plot_summary(result_amount())
     })
+    
+    output$plot2 <- renderPlot({
+      plot_summary(result_recovery())
+    })
+    
     
     
   })

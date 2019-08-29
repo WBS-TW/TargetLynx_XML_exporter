@@ -7,14 +7,14 @@ library(DT)
 library(plotly)
 
 options(shiny.maxRequestSize=30*1024^2) 
-
+options(shiny.reactlog=TRUE) 
 source("D:/R_projects/TargetLynx_XML_exporter/Targetlynx_functions.r", local = TRUE)
 
 
 #HEADER---------------------------------------------------------------------------------
 
 header <- dashboardHeader(title = "ML_XML_exp"
-                          )
+)
 
 #SIDEBAR---------------------------------------------------------------------------------
 
@@ -26,7 +26,7 @@ sidebar <- dashboardSidebar(
              checkboxInput("blanks", "Exclude blanks"),
              checkboxInput("standards", "Exclude standards"),
              numericInput("decimal", "Number of decimals", value = 2)
-             ),
+    ),
     menuItem("Sample summary", tabName = "summary", icon = icon("chart-bar")),
     menuItem("Raw data table", tabName = "rawdata", icon = icon("table")),
     menuItem("Recoveries", tabName = "recoveries", icon = icon("wine-glass-alt"))
@@ -42,18 +42,18 @@ body <- dashboardBody(
     tabItem(tabName = "summary",
             fluidRow(
               DT::dataTableOutput("table_summary")
-              ),
+            ),
             fluidRow(
               plotOutput("plot1", height = 700)
-              )
-            ),
+            )
+    ),
     
     # Second tab content
     tabItem(tabName = "rawdata",
             fluidRow(
               DT::dataTableOutput("table_raw")
-              )
-            ),
+            )
+    ),
     tabItem(tabName = "recoveries",
             fluidRow(
               DT::dataTableOutput("table_recoveries"),
@@ -61,8 +61,8 @@ body <- dashboardBody(
                 plotOutput("plot2", height = 700)
               )
             ))
-        )
   )
+)
 
 
 ui <- dashboardPage(header, sidebar, body)
@@ -82,8 +82,8 @@ server <- function(input, output) {
     t <- get_amounts(data = input_data, decimal = input$decimal, blanks = input$blanks, standards = input$standards)
   })
   result_recovery <- reactive({
-    input_data <- data()
-    t <- get_recovery(data = input_data, blanks = input$blanks, standards = input$standards)
+    input_recovery <- data()
+    r <- get_recovery(data = input_recovery, blanks = input$blanks, standards = input$standards)
   })
   
   observeEvent(input$click_file, {
@@ -113,15 +113,21 @@ server <- function(input, output) {
       )
     })
     
+    
     output$table_recoveries <- DT::renderDataTable({
-      dt2 <- DT::datatable(result_recovery(),
-                           extensions = 'FixedColumns',
-                           options = list(
-                             pageLength = 20,
-                             dom = 't',
-                             scrollX = TRUE,
-                             fixedColumns = list(leftColumns = 3))
-      )
+      rec_color <- sapply(result_recovery(), is.numeric)
+      
+      datatable(result_recovery(),
+                extensions = 'FixedColumns',
+                options = list(
+                  pageLength = 20,
+                  dom = 't',
+                  scrollX = TRUE,
+                  fixedColumns = list(leftColumns = 3))) %>%
+        formatStyle(names(result_recovery()[rec_color]), 
+                    color = styleInterval(c(0, 25, 50, 75, 125, 150),
+                                          c("red", "red", "blue", "black", "black", "blue", "red")))
+      
     })
     
     output$plot1 <- renderPlot({
