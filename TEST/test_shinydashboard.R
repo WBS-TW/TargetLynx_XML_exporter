@@ -22,9 +22,9 @@ sidebar <- dashboardSidebar(
   fileInput('file1', 'Choose XML File', accept = c(".xml")),
   actionButton("click_file", "Select"),
   sidebarMenu(
-    menuItem("Filtering", tabName = "filter", icon = icon("filter"),
-             checkboxInput("blanks", "Exclude blanks"),
-             checkboxInput("standards", "Exclude standards"),
+    menuItem("Filtering", tabName = "Filter", icon = icon("filter"),
+             checkboxInput("CheckBlanks", "Exclude blanks"),
+             checkboxInput("CheckStandards", "Exclude standards"),
              numericInput("decimal", "Number of decimals", value = 2)
     ),
     menuItem("Sample summary", tabName = "summary", icon = icon("chart-bar")),
@@ -79,11 +79,11 @@ server <- function(input, output) {
   
   result_amount <- reactive({
     input_data <- data()
-    t <- get_amounts(data = input_data, decimal = input$decimal, blanks = input$blanks, standards = input$standards)
+    t <- get_amounts(data = input_data, decimal = input$decimal, blanks = input$CheckBlanks, standards = input$CheckStandards)
   })
   result_recovery <- reactive({
     input_recovery <- data()
-    r <- get_recovery(data = input_recovery, blanks = input$blanks, standards = input$standards)
+    r <- get_recovery(data = input_recovery, blanks = input$CheckBlanks, standards = input$CheckStandards)
   })
   
   observeEvent(input$click_file, {
@@ -114,21 +114,21 @@ server <- function(input, output) {
     })
     
     
-   output$table_recoveries <- DT::renderDataTable({
-     rec_color <- sapply(result_recovery(), is.numeric)
-     
-     datatable(result_recovery(),
-               extensions = 'FixedColumns',
-               options = list(
-                 pageLength = 20,
-                 dom = 't',
-                 scrollX = TRUE,
-                 fixedColumns = list(leftColumns = 3))) %>%
-       formatStyle(names(result_recovery()[rec_color]), 
-                   color = styleInterval(c(0, 25, 50, 75, 125, 150),
-                                         c("red", "red", "blue", "black", "black", "blue", "red")))
+    output$table_recoveries <- DT::renderDataTable({
+      rec_color <- sapply(result_recovery(), is.numeric)
       
-      })
+      datatable(result_recovery(),
+                extensions = 'FixedColumns',
+                options = list(
+                  pageLength = 20,
+                  dom = 't',
+                  scrollX = TRUE,
+                  fixedColumns = list(leftColumns = 3))) %>%
+        formatStyle(names(result_recovery()[rec_color]), 
+                    color = styleInterval(c(0, 25, 50, 75, 125, 150),
+                                          c("red", "red", "blue", "black", "black", "blue", "red")))
+      
+    })
     
     output$plot1 <- renderPlot({
       plot_summary(result_amount())
