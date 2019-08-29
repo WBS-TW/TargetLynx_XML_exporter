@@ -8,7 +8,7 @@ library(plotly)
 
 options(shiny.maxRequestSize=30*1024^2) 
 
-source("Targetlynx_functions.r", local = TRUE)
+source("D:/R_projects/TargetLynx_XML_exporter/Targetlynx_functions.r", local = TRUE)
 
 
 #HEADER---------------------------------------------------------------------------------
@@ -29,7 +29,8 @@ sidebar <- dashboardSidebar(
     ),
     menuItem("Sample summary", tabName = "summary", icon = icon("chart-bar")),
     menuItem("Raw data table", tabName = "rawdata", icon = icon("table"))
-  )
+  ),
+  downloadButton("dl", "Save as xlsx")
 )
 
 #BODY---------------------------------------------------------------------------------
@@ -42,7 +43,7 @@ body <- dashboardBody(
               DT::dataTableOutput("table_summary")
             ),
             fluidRow(
-              plotOutput("plot1")
+              plotOutput("plot1", height = 700)
             )
     ),
     
