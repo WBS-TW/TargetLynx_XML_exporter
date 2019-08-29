@@ -4,16 +4,18 @@ library(xml2)
 #library(sloop) # for S3 OOP
 
 getwd()
-data <- read_xml("D:/R_projects/Masslynx_exporter/Data/MH16-001-PCBs_batch3.xml")
+data <- read_xml("D:/R_projects/TargetLynx_XML_exporter/Data/MH16-001-PCBs_batch3.xml")
 
-data <- read_xml("D:/R_projects/Masslynx_exporter/Data/TQS_FC_180615-fish_and_mammal_Greenland.xml")
+data <- read_xml("D:/R_projects/TargetLynx_XML_exporter/Data/TQS_FC_180615-fish_and_mammal_Greenland.xml")
 
 #### Extract the amounts (analconc) for all sample files ####
 
 
 
 
-get_amounts <- function(data, decimal = 2, blank = FALSE, standard = FALSE) {
+# Get amounts from analconc node
+# Get amounts from analconc node
+get_amounts <- function(data, decimal = 2, blanks = FALSE, standards = FALSE) {
   data <- data
   length_samples <- xml_length(xml_child(xml_child(xml_child(data, 3), 1), 2))
   table_comps <- NULL
@@ -43,12 +45,12 @@ get_amounts <- function(data, decimal = 2, blank = FALSE, standard = FALSE) {
       mutate(sample_name = sample_name, sample_type = sample_type) %>% select(sample_name, sample_type, everything())
     table_amounts <- rbind(table_amounts, sample_comps) %>%
       filter(sample_type != "")  # delete empty rows
-
-    if(standard == TRUE) {
+    
+    if(standards == TRUE) {
       table_amounts <- table_amounts %>%
         filter(sample_type != "Standard")
     }
-    if(blank == TRUE) {
+    if(blanks == TRUE) {
       table_amounts <- table_amounts %>%
         filter(sample_type != "Blank")
     }
@@ -57,6 +59,8 @@ get_amounts <- function(data, decimal = 2, blank = FALSE, standard = FALSE) {
   }
   return(table_amounts)
 }
+
+
 
 
 
