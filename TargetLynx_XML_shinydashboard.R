@@ -22,19 +22,19 @@ sidebar <- dashboardSidebar(
   fileInput('file1', 'Choose XML File', accept = c(".xml")),
   actionButton("click_file", "Select"),
   sidebarMenu(
-    menuItem("Filtering", tabName = "Filter", icon = icon("filter"),
+    menuItem(tags$b("Filtering"), tabName = "Filter", icon = icon("filter"),
              checkboxInput("CheckBlanks", "Exclude blanks"),
              checkboxInput("CheckStandards", "Exclude standards"),
              numericInput("Decimal", "Number of decimals", value = 2)
     ),
     hr(),
-    menuItem("Sample summary", tabName = "Summary", icon = icon("chart-bar")),
+    menuItem(tags$b("Sample summary"), tabName = "Summary", icon = icon("chart-bar")),
     checkboxInput("CheckSummaryPlot", "Show summary plots"),
     hr(),
-    menuItem("Recoveries", tabName = "Recovery", icon = icon("wine-glass-alt")),
+    menuItem(tags$b("Recoveries"), tabName = "Recovery", icon = icon("wine-glass-alt")),
     checkboxInput("CheckRecoveryPlot", "Show recovery plots"),
     hr(),
-    menuItem("Raw data table", tabName = "Rawdata", icon = icon("table"))
+    menuItem(tags$b("Raw data table"), tabName = "Rawdata", icon = icon("table"))
   ),
   hr(),
   downloadButton("dl", "Save as xlsx")
