@@ -85,6 +85,24 @@ plot_summary <- function(data, gather_select = -c(sample_name, sample_type), plo
 plot_summary(test)
 
 
+## plot heatmap
+plot_heatmap <- function(data) {
+  
+  mat <- data %>%
+    select_if(is.numeric)
+  rownames(mat) <- data$sample_name
+  
+  annotation_cols <- data %>% select(sample_type)
+  rownames(annotation_cols) <- data$sample_name
+  
+  pheatmap(mat, cluster_rows = FALSE, cluster_cols = FALSE, annotation_row = annotation_cols)
+  
+}
+
+#test
+plot_heatmap(table_amounts)
+
+
 #### Extract the recoveries () for all sample files ####
 
 

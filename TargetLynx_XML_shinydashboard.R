@@ -4,7 +4,7 @@ library(shinydashboard)
 library(xml2)
 library(tidyverse)
 library(DT)
-library(plotly)
+library(pheatmap)
 
 options(shiny.maxRequestSize=30*1024^2) 
 options(shiny.reactlog=TRUE) 
@@ -29,7 +29,7 @@ sidebar <- dashboardSidebar(
     ),
     hr(),
     menuItem(tags$b("Sample summary"), tabName = "Summary", icon = icon("chart-bar")),
-    checkboxInput("CheckSummaryPlot", "Show summary plots"),
+    selectInput("SelectSummaryPlots", "Select plot", choices = c("None", "SummaryScatter", "SummaryHeatmap"), selected = "SummaryHeatmap"),
     hr(),
     menuItem(tags$b("Recoveries"), tabName = "Recovery", icon = icon("wine-glass-alt")),
     checkboxInput("CheckRecoveryPlot", "Show recovery plots"),
@@ -141,12 +141,26 @@ server <- function(input, output) {
     # Plots
     
     output$SummaryPlot <- renderUI(
-      if (input$CheckSummaryPlot) {
+      if (input$SelectSummaryPlots == "SummaryScatter") {
         plotOutput("UISummaryPlot", height = 700)
+      } else if (input$SelectSummaryPlots == "SummaryHeatmap") {
+        plotOutput("UISummaryPlot", height = 700)
+      } else if (input$SelectSummaryPlots == "None") {
+        NULL
       })
+    
     output$UISummaryPlot <- renderPlot({
-      plot_summary(result_amount())
+      if (input$SelectSummaryPlots == "SummaryScatter") {
+        plot_summary(result_amount())
+      } else if (input$SelectSummaryPlots == "SummaryHeatmap") {
+        plot_heatmap(result_amount())
+      } else if (input$SelectSummaryPlots == "None") {
+        NULL
+      }
     })
+    
+    
+    
     
     output$RecoveryPlot <- renderUI(
       if (input$CheckRecoveryPlot) {

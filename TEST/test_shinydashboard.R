@@ -4,7 +4,7 @@ library(shinydashboard)
 library(xml2)
 library(tidyverse)
 library(DT)
-library(plotly)
+library(pheatmap)
 
 options(shiny.maxRequestSize=30*1024^2) 
 options(shiny.reactlog=TRUE) 
@@ -22,19 +22,19 @@ sidebar <- dashboardSidebar(
   fileInput('file1', 'Choose XML File', accept = c(".xml")),
   actionButton("click_file", "Select"),
   sidebarMenu(
-    menuItem("Filtering", tabName = "Filter", icon = icon("filter"),
+    menuItem(tags$b("Filtering"), tabName = "Filter", icon = icon("filter"),
              checkboxInput("CheckBlanks", "Exclude blanks"),
              checkboxInput("CheckStandards", "Exclude standards"),
              numericInput("Decimal", "Number of decimals", value = 2)
     ),
     hr(),
-    menuItem("Sample summary", tabName = "Summary", icon = icon("chart-bar")),
-    checkboxInput("CheckSummaryPlot", "Show summary plots"),
+    menuItem(tags$b("Sample summary"), tabName = "Summary", icon = icon("chart-bar")),
+    selectInput("SelectSummaryPlots", "Select plot", choices = c("None", "SummaryScatter", "SummaryHeatmap"), selected = "SummaryHeatmap"),
     hr(),
-    menuItem("Recoveries", tabName = "Recovery", icon = icon("wine-glass-alt")),
+    menuItem(tags$b("Recoveries"), tabName = "Recovery", icon = icon("wine-glass-alt")),
     checkboxInput("CheckRecoveryPlot", "Show recovery plots"),
     hr(),
-    menuItem("Raw data table", tabName = "Rawdata", icon = icon("table"))
+    menuItem(tags$b("Raw data table"), tabName = "Rawdata", icon = icon("table"))
   ),
   hr(),
   downloadButton("dl", "Save as xlsx")
@@ -141,13 +141,27 @@ server <- function(input, output) {
     # Plots
     
     output$SummaryPlot <- renderUI(
-      if (input$CheckSummaryPlot) {
+      if (input$SelectSummaryPlots == "SummaryScatter") {
         plotOutput("UISummaryPlot", height = 700)
+      } else if (input$SelectSummaryPlots == "SummaryHeatmap") {
+        plotOutput("UISummaryPlot", height = 700)
+      } else if (input$SelectSummaryPlots == "None") {
+        NULL
       })
+    
     output$UISummaryPlot <- renderPlot({
+      if (input$SelectSummaryPlots == "SummaryScatter") {
       plot_summary(result_amount())
+      } else if (input$SelectSummaryPlots == "SummaryHeatmap") {
+        plot_heatmap(result_amount())
+      } else if (input$SelectSummaryPlots == "None") {
+      NULL
+      }
     })
     
+  
+ 
+        
     output$RecoveryPlot <- renderUI(
       if (input$CheckRecoveryPlot) {
         plotOutput("UIRecoveryPlot", height = 700)
