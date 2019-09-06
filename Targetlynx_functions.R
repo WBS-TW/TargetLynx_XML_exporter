@@ -116,7 +116,7 @@ plot_summary <- function(data, gather_select = -c(sample_name, sample_type), plo
 
 #plot heatmap function-----------------------------
 
-plot_heatmap <- function(data) {
+plot_heatmap <- function(data, scale) {
   
   mat <- data %>%
     select_if(is.numeric)
@@ -125,7 +125,7 @@ plot_heatmap <- function(data) {
   annotation_cols <- data %>% select(sample_type)
   rownames(annotation_cols) <- data$sample_name
   
-  pheatmap(mat, cluster_rows = FALSE, cluster_cols = FALSE, annotation_row = annotation_cols)
+  pheatmap(mat, cluster_rows = FALSE, cluster_cols = FALSE, annotation_row = annotation_cols, scale = scale)
   
 }
 

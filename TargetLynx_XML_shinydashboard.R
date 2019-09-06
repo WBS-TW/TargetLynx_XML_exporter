@@ -30,6 +30,7 @@ sidebar <- dashboardSidebar(
     hr(),
     menuItem(tags$b("Sample summary"), tabName = "Summary", icon = icon("chart-bar")),
     selectInput("SelectSummaryPlots", "Select plot", choices = c("None", "SummaryScatter", "SummaryHeatmap"), selected = "SummaryHeatmap"),
+    uiOutput("HeatmapScale"),
     hr(),
     menuItem(tags$b("Recoveries"), tabName = "Recovery", icon = icon("wine-glass-alt")),
     checkboxInput("CheckRecoveryPlot", "Show recovery plots"),
@@ -138,6 +139,15 @@ server <- function(input, output) {
       
     })
     
+    # UI dashboard
+    output$HeatmapScale <- renderUI({
+      if (input$SelectSummaryPlots == "SummaryHeatmap") {
+        selectInput("SelectHeatmapScale", "Scaling", choices = c("none", "row", "column"), selected = "none")
+      }
+    })
+    
+    
+    
     # Plots
     
     output$SummaryPlot <- renderUI(
@@ -153,7 +163,7 @@ server <- function(input, output) {
       if (input$SelectSummaryPlots == "SummaryScatter") {
         plot_summary(result_amount())
       } else if (input$SelectSummaryPlots == "SummaryHeatmap") {
-        plot_heatmap(result_amount())
+        plot_heatmap(result_amount(), scale = input$SelectHeatmapScale)
       } else if (input$SelectSummaryPlots == "None") {
         NULL
       }
