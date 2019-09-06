@@ -133,13 +133,19 @@ test2
 
 
 mat <- table_amounts %>%
-  select_if(is.numeric)
+  select_if(is.numeric) %>%
+  select_if(function(x){!all(is.na(x))})
+
 rownames(mat) <- table_amounts$sample_name
 
 sample_id <- table_amounts %>% select(sample_type)
 rownames(sample_id) <- table_amounts$sample_name
 
-pheatmap(mat, cluster_rows = FALSE, cluster_cols = FALSE, annotation_row = sample_id)
+pheatmap(mat, cluster_rows = FALSE, cluster_cols = TRUE, annotation_row = sample_id,
+         scale = "none")
+
+
+
 
 
 

@@ -2,7 +2,8 @@
 library(shiny)
 library(shinydashboard)
 library(xml2)
-library(tidyverse)
+library(dplyr)
+library(ggplot2)
 library(DT)
 library(pheatmap)
 
@@ -159,7 +160,7 @@ server <- function(input, output) {
     })
     
     
-    # Plots
+# Plots--------------------------------------------------------------
     
     output$SummaryPlot <- renderUI(
       if (input$SelectSummaryPlots == "SummaryScatter") {
@@ -183,7 +184,6 @@ server <- function(input, output) {
     
     
     
-    
     output$RecoveryPlot <- renderUI(
       if (input$CheckRecoveryPlot) {
         plotOutput("UIRecoveryPlot", height = 700)
@@ -193,7 +193,7 @@ server <- function(input, output) {
     })
     
     
-    
+# Export to Excel----------------------------------------------------------    
     
     
   })
