@@ -86,7 +86,7 @@ plot_summary(test)
 
 
 ## plot heatmap
-plot_heatmap <- function(data, scale) {
+plot_heatmap <- function(data, scale, cluster_rows = FALSE, cluster_cols = FALSE) {
   
   mat <- data %>%
     select_if(is.numeric)
@@ -95,9 +95,11 @@ plot_heatmap <- function(data, scale) {
   annotation_cols <- data %>% select(sample_type)
   rownames(annotation_cols) <- data$sample_name
   
-  pheatmap(mat, cluster_rows = FALSE, cluster_cols = FALSE, annotation_row = annotation_cols, scale = scale)
+  pheatmap(mat, cluster_rows = cluster_rows, cluster_cols = cluster_cols, annotation_row = annotation_cols, 
+           scale = scale, cluster_rows = cluster_rows, cluster_cols = cluster_cols)
   
 }
+
 
 #test
 plot_heatmap(table_amounts)
