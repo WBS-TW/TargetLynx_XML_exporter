@@ -2,10 +2,10 @@
 library(shiny)
 library(shinydashboard)
 library(xml2)
-library(dplyr)
-library(ggplot2)
+library(tidyverse)
 library(DT)
 library(pheatmap)
+library(writexl)
 
 options(shiny.maxRequestSize=30*1024^2) 
 options(shiny.reactlog=TRUE) 
@@ -160,7 +160,7 @@ server <- function(input, output) {
     })
     
     
-# Plots--------------------------------------------------------------
+    # Plots
     
     output$SummaryPlot <- renderUI(
       if (input$SelectSummaryPlots == "SummaryScatter") {
@@ -184,6 +184,7 @@ server <- function(input, output) {
     
     
     
+    
     output$RecoveryPlot <- renderUI(
       if (input$CheckRecoveryPlot) {
         plotOutput("UIRecoveryPlot", height = 700)
@@ -193,13 +194,15 @@ server <- function(input, output) {
     })
     
     
-# Export to Excel----------------------------------------------------------    
+    
     
     
   })
   output$dl <- downloadHandler(
-    filename = function() { "data.csv"},
-    content = function(file) {write_excel_csv2(result_amount(), path = file)}
+    filename = function() { "data.xlsx"},
+    content = function(file) {
+      write_xlsx(list(Amounts = result_amount(), Recoveries = result_recovery()), path = file)
+    }
   )
 }
 

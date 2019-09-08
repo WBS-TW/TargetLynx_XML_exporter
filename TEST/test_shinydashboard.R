@@ -5,6 +5,7 @@ library(xml2)
 library(tidyverse)
 library(DT)
 library(pheatmap)
+library(writexl)
 
 options(shiny.maxRequestSize=30*1024^2) 
 options(shiny.reactlog=TRUE) 
@@ -198,8 +199,10 @@ server <- function(input, output) {
     
   })
   output$dl <- downloadHandler(
-    filename = function() { "data.csv"},
-    content = function(file) {write_excel_csv2(result_amount(), path = file)}
+    filename = function() { "data.xlsx"},
+    content = function(file) {
+      write_xlsx(list(Amounts = result_amount(), Recoveries = result_recovery()), path = file)
+      }
   )
 }
 
