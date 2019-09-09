@@ -82,7 +82,15 @@ ui <- dashboardPage(header, sidebar, body)
 
 #SERVER---------------------------------------------------------------------------------
 
-server <- function(input, output) {
+server <- function(input, output, session) {
+  
+  if (!interactive()) {
+    session$onSessionEnded(function() {
+      stopApp()
+      q("no")
+    })
+  }
+  
   data <- reactive({
     req(input$file1) ## ?req #  require that the input is available
     df <- read_xml(input$file1$datapath)
