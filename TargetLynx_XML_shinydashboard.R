@@ -51,9 +51,9 @@ body <- dashboardBody(
   tabItems(
     # Summary tab content
     tabItem(tabName = "Summary",
-            fluidRow(
-              DT::dataTableOutput("SummaryTable")
-            ),
+            # fluidRow(
+            #   DT::dataTableOutput("SummaryTable")
+            # ),
             fluidRow(
               uiOutput("SummaryPlot")
             )
@@ -120,19 +120,19 @@ server <- function(input, output, session) {
     })
     
     
-    output$SummaryTable <- DT::renderDataTable({
-      summary_tab <- result_amount() %>%
-        group_by(sample_type) %>%
-        summarise_if(is.numeric, mean)
-      DT::datatable(summary_tab,
-                    extensions = 'FixedColumns',
-                    options = list(
-                      pageLength = 20,
-                      dom = 't',
-                      scrollX = TRUE,
-                      fixedColumns = TRUE)
-      )
-    })
+    # output$SummaryTable <- DT::renderDataTable({
+    #   summary_tab <- result_amount() %>%
+    #     group_by(sample_type) %>%
+    #     summarise_if(is.numeric, mean)
+    #   DT::datatable(summary_tab,
+    #                 extensions = 'FixedColumns',
+    #                 options = list(
+    #                   pageLength = 20,
+    #                   dom = 't',
+    #                   scrollX = TRUE,
+    #                   fixedColumns = TRUE)
+    #   )
+    # })
     
     
     # UI dashboard
