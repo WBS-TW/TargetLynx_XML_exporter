@@ -6,6 +6,7 @@ library(tidyverse)
 library(DT)
 library(pheatmap)
 library(writexl)
+library(RColorBrewer)
 
 options(shiny.maxRequestSize=50*1024^2) 
 options(shiny.reactlog=TRUE) 
