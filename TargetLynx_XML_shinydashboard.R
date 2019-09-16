@@ -7,15 +7,14 @@ library(DT)
 library(pheatmap)
 library(writexl)
 
-options(shiny.maxRequestSize=30*1024^2) 
+options(shiny.maxRequestSize=50*1024^2) 
 options(shiny.reactlog=TRUE) 
 source("D:/R_projects/TargetLynx_XML_exporter/Targetlynx_functions.r", local = TRUE)
 
 
 #HEADER---------------------------------------------------------------------------------
 
-header <- dashboardHeader(title = "ML_XML_exp"
-)
+header <- dashboardHeader(title = "ML_XML_exp")
 
 #SIDEBAR---------------------------------------------------------------------------------
 
@@ -36,7 +35,8 @@ sidebar <- dashboardSidebar(
     uiOutput("HeatmapClusterCols"),
     hr(),
     menuItem(tags$b("Recoveries"), tabName = "Recovery", icon = icon("wine-glass-alt")),
-    checkboxInput("CheckRecoveryPlot", "Show recovery plots"),
+    selectInput("SelectRecoveryPlots", "Select output", choices = c("RecoveryHeatmap", "RecoveryScatter", "RecoveryTable"),
+                selected = "RecoveryHeatmap"),
     hr(),
     menuItem(tags$b("Raw data table"), tabName = "Rawdata", icon = icon("table"))
   ),
@@ -61,11 +61,10 @@ body <- dashboardBody(
     # Recovery tab content
     tabItem(tabName = "Recovery",
             fluidRow(
-              DT::dataTableOutput("table_recoveries"),
-              fluidRow(
-                uiOutput("RecoveryPlot")
-              )
-            )),
+              uiOutput("RecoveryPlot"),
+              uiOutput("RecoveryTables")
+            )
+    ),
     
     # Rawdata tab content
     tabItem(tabName = "Rawdata",
@@ -119,6 +118,7 @@ server <- function(input, output, session) {
       )
     })
     
+    
     output$SummaryTable <- DT::renderDataTable({
       summary_tab <- result_amount() %>%
         group_by(sample_type) %>%
@@ -133,22 +133,6 @@ server <- function(input, output, session) {
       )
     })
     
-    
-    output$table_recoveries <- DT::renderDataTable({
-      rec_color <- sapply(result_recovery(), is.numeric)
-      
-      datatable(result_recovery(),
-                extensions = 'FixedColumns',
-                options = list(
-                  pageLength = 20,
-                  dom = 't',
-                  scrollX = TRUE,
-                  fixedColumns = list(leftColumns = 3))) %>%
-        formatStyle(names(result_recovery()[rec_color]), 
-                    color = styleInterval(c(0, 25, 50, 75, 125, 150),
-                                          c("red", "red", "blue", "black", "black", "blue", "red")))
-      
-    })
     
     # UI dashboard
     output$HeatmapScale <- renderUI({
@@ -169,7 +153,7 @@ server <- function(input, output, session) {
     
     
     # Plots
-    
+    # Amounts
     output$SummaryPlot <- renderUI(
       if (input$SelectSummaryPlots == "SummaryScatter") {
         plotOutput("UISummaryPlot", height = 700)
@@ -191,15 +175,47 @@ server <- function(input, output, session) {
     })
     
     
-    
-    
+    # Recovery
     output$RecoveryPlot <- renderUI(
-      if (input$CheckRecoveryPlot) {
+      if (input$SelectRecoveryPlots == "RecoveryScatter") {
         plotOutput("UIRecoveryPlot", height = 700)
+      } else if (input$SelectRecoveryPlots == "RecoveryHeatmap") {
+        plotOutput("UIRecoveryPlot", height = 700) 
       })
-    output$UIRecoveryPlot <- renderPlot({
-      plot_summary(result_recovery())
+    
+    output$RecoveryTables <- renderUI(
+      if (input$SelectRecoveryPlots == "RecoveryTable") {
+        DT::dataTableOutput("UIRecoveryTable", height = 700)
+      })
+    
+    
+    output$UIRecoveryTable <- DT::renderDataTable({
+      if (input$SelectRecoveryPlots == "RecoveryTable") {
+        rec_color <- sapply(result_recovery(), is.numeric)
+        
+        datatable(result_recovery(),
+                  extensions = 'FixedColumns',
+                  options = list(
+                    pageLength = 20,
+                    dom = 't',
+                    scrollX = TRUE,
+                    fixedColumns = list(leftColumns = 3))) %>%
+          formatStyle(names(result_recovery()[rec_color]), 
+                      color = styleInterval(c(0, 25, 50, 75, 125, 150),
+                                            c("red", "red", "blue", "black", "black", "blue", "red")))
+      }
     })
+    
+    output$UIRecoveryPlot <- renderPlot({
+      if (input$SelectRecoveryPlots == "RecoveryScatter") {
+        plot_summary(result_recovery())
+      } else if (input$SelectRecoveryPlots == "RecoveryHeatmap") {
+        plot_recovery_heatmap(result_recovery(), scale = "none", cluster_rows = FALSE, cluster_cols = FALSE)
+      }
+    })
+    
+    
+    
     
     
     

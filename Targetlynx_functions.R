@@ -134,4 +134,24 @@ plot_heatmap <- function(data, scale, cluster_rows, cluster_cols) {
   
 }
 
+plot_recovery_heatmap <- function(data, scale, cluster_rows, cluster_cols) {
+  
+  mat <- data %>%
+    select_if(is.numeric) %>%
+    select_if(function(x){!all(is.na(x))})
+  
+  rownames(mat) <- data$sample_name
+  
+  annotation_cols <- data %>% select(sample_type)
+  rownames(annotation_cols) <- data$sample_name
+  
+  breaksRecovery <- seq(0, 200, length.out = 10)
+  
+  pheatmap(mat, annotation_row = annotation_cols, scale = scale, 
+           cluster_rows = cluster_rows, cluster_cols = cluster_cols,
+           border_color = "black",
+           color = colorRampPalette(rev(brewer.pal(n = 7, name = "RdYlBu")))(length(breaksRecovery)),
+           breaks = breaksRecovery)
+  
+}
 

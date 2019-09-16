@@ -2,6 +2,8 @@
 library(tidyverse)
 library(xml2)
 library(pheatmap)
+library(DT)
+library(RColorBrewer)
 #library(sloop) # for S3 OOP
 
 
@@ -15,6 +17,7 @@ length_samples <- xml_length(xml_child(xml_child(xml_child(data, 3), 1), 2))
 table_comps <- NULL
 table_sample <- NULL
 table_amounts <- NULL
+
 
 sample_amounts <- for (i in 1:length_samples) {
   
@@ -141,11 +144,36 @@ rownames(mat) <- table_amounts$sample_name
 sample_id <- table_amounts %>% select(sample_type)
 rownames(sample_id) <- table_amounts$sample_name
 
-pheatmap(mat, cluster_rows = FALSE, cluster_cols = TRUE, annotation_row = sample_id,
-         scale = "none")
+min(mat, na.rm = TRUE)
+max(mat, na.rm = TRUE)
+
+breaksList <- seq(min(mat, na.rm = TRUE), max(mat, na.rm = TRUE), length.out = 10)
+
+pheatmap(mat, cluster_rows = FALSE, cluster_cols = FALSE, annotation_row = sample_id,
+         scale = "none",
+         color = colorRampPalette(rev(brewer.pal(n = 7, name = "RdYlBu")))(length(breaksList)),
+         breaks = breaksList)
 
 
+# plot recovery using pheatmap
 
+
+mat <- table_recovery %>%
+  select_if(is.numeric) %>%
+  select_if(function(x){!all(is.na(x))})
+
+rownames(mat) <- table_recovery$sample_name
+
+sample_id <- table_recovery %>% select(sample_type)
+rownames(sample_id) <- table_recovery$sample_name
+
+#breaksList <- seq(min(mat, na.rm = TRUE), max(mat, na.rm = TRUE), by = 10)
+breaksRecovery <- seq(0, 200, length.out = 10)
+
+pheatmap(mat, cluster_rows = FALSE, cluster_cols = FALSE, annotation_row = sample_id,
+         scale = "none",
+         color = colorRampPalette(rev(brewer.pal(n = 7, name = "RdYlBu")))(length(breaksRecovery)),
+         breaks = breaksRecovery)
 
 
 
