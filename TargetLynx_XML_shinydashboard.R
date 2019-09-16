@@ -10,7 +10,7 @@ library(RColorBrewer)
 
 options(shiny.maxRequestSize=50*1024^2) 
 options(shiny.reactlog=TRUE) 
-source("D:/R_projects/TargetLynx_XML_exporter/Targetlynx_functions.r", local = TRUE)
+source("Targetlynx_functions.r", local = TRUE)
 
 
 #HEADER---------------------------------------------------------------------------------
