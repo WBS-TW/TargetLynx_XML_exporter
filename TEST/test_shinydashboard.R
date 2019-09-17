@@ -6,6 +6,7 @@ library(tidyverse)
 library(DT)
 library(pheatmap)
 library(writexl)
+library(RColorBrewer)
 
 options(shiny.maxRequestSize=50*1024^2) 
 options(shiny.reactlog=TRUE) 
@@ -47,12 +48,71 @@ sidebar <- dashboardSidebar(
 #BODY---------------------------------------------------------------------------------
 
 body <- dashboardBody(
+  
+  tags$head(tags$style(HTML('
+                          /* logo */
+                          .skin-blue .main-header .logo {
+                          background-color: rgb(255,255,255); color:        rgb(0,144,197);
+                          font-weight: bold;font-size: 24px;text-align: Right;
+                          }
+
+                          /* logo when hovered */
+
+                          .skin-blue .main-header .logo:hover {
+                          background-color: rgb(255,255,255);
+                          }
+
+
+                          /* navbar (rest of the header) */
+                          .skin-blue .main-header .navbar {
+                          background-color: rgb(255,255,255);
+                          }
+
+                          /* main sidebar */
+                          .skin-blue .main-sidebar {
+                          background-color: rgb(163, 172, 196);;
+                          }
+
+                          # /* main body */
+                          # .skin-blue .main-body {
+                          # background-color: rgb(0,120,150);
+                          # }
+
+                          /* active selected tab in the sidebarmenu */
+                          .skin-blue .main-sidebar .sidebar .sidebar-menu .active a{
+                          background-color: rgb(6, 34, 117);
+                          color: rgb(255,255,255);font-weight: bold;font-size: 18px;
+                          }
+
+                          /* other links in the sidebarmenu */
+                          .skin-blue .main-sidebar .sidebar .sidebar-menu a{
+                          background-color: rgb(19, 87, 72);
+                          color: rgb(255,255,255);font-weight: bold;
+                          }
+
+                          /* other links in the sidebarmenu when hovered */
+                          .skin-blue .main-sidebar .sidebar .sidebar-menu a:hover{
+                          background-color: rgb(232,245,251);color: rgb(0,144,197);font-weight: bold;
+                          }
+
+                          /* toggle button color  */
+                          .skin-blue .main-header .navbar .sidebar-toggle{
+                          background-color: rgb(255,255,255);color:rgb(0,144,197);
+                          }
+
+                          /* toggle button when hovered  */
+                          .skin-blue .main-header .navbar .sidebar-toggle:hover{
+                          background-color: rgb(0,144,197);color:rgb(255,255,255);
+                          }
+
+                           '))),
+  
   tabItems(
     # Summary tab content
     tabItem(tabName = "Summary",
-            fluidRow(
-              DT::dataTableOutput("SummaryTable")
-            ),
+            # fluidRow(
+            #   DT::dataTableOutput("SummaryTable")
+            # ),
             fluidRow(
               uiOutput("SummaryPlot")
             )
@@ -63,8 +123,8 @@ body <- dashboardBody(
             fluidRow(
               uiOutput("RecoveryPlot"),
               uiOutput("RecoveryTables")
-              )
-            ),
+            )
+    ),
     
     # Rawdata tab content
     tabItem(tabName = "Rawdata",
@@ -119,19 +179,19 @@ server <- function(input, output, session) {
     })
     
     
-    output$SummaryTable <- DT::renderDataTable({
-      summary_tab <- result_amount() %>%
-        group_by(sample_type) %>%
-        summarise_if(is.numeric, mean)
-      DT::datatable(summary_tab,
-                    extensions = 'FixedColumns',
-                    options = list(
-                      pageLength = 20,
-                      dom = 't',
-                      scrollX = TRUE,
-                      fixedColumns = TRUE)
-      )
-    })
+    # output$SummaryTable <- DT::renderDataTable({
+    #   summary_tab <- result_amount() %>%
+    #     group_by(sample_type) %>%
+    #     summarise_if(is.numeric, mean)
+    #   DT::datatable(summary_tab,
+    #                 extensions = 'FixedColumns',
+    #                 options = list(
+    #                   pageLength = 20,
+    #                   dom = 't',
+    #                   scrollX = TRUE,
+    #                   fixedColumns = TRUE)
+    #   )
+    # })
     
     
     # UI dashboard
@@ -153,7 +213,7 @@ server <- function(input, output, session) {
     
     
     # Plots
-      # Amounts
+    # Amounts
     output$SummaryPlot <- renderUI(
       if (input$SelectSummaryPlots == "SummaryScatter") {
         plotOutput("UISummaryPlot", height = 700)
@@ -175,7 +235,7 @@ server <- function(input, output, session) {
     })
     
     
-      # Recovery
+    # Recovery
     output$RecoveryPlot <- renderUI(
       if (input$SelectRecoveryPlots == "RecoveryScatter") {
         plotOutput("UIRecoveryPlot", height = 700)
@@ -185,24 +245,24 @@ server <- function(input, output, session) {
     
     output$RecoveryTables <- renderUI(
       if (input$SelectRecoveryPlots == "RecoveryTable") {
-      DT::dataTableOutput("UIRecoveryTable", height = 700)
-    })
+        DT::dataTableOutput("UIRecoveryTable", height = 700)
+      })
     
-
+    
     output$UIRecoveryTable <- DT::renderDataTable({
       if (input$SelectRecoveryPlots == "RecoveryTable") {
-      rec_color <- sapply(result_recovery(), is.numeric)
-      
-      datatable(result_recovery(),
-                extensions = 'FixedColumns',
-                options = list(
-                  pageLength = 20,
-                  dom = 't',
-                  scrollX = TRUE,
-                  fixedColumns = list(leftColumns = 3))) %>%
-        formatStyle(names(result_recovery()[rec_color]), 
-                    color = styleInterval(c(0, 25, 50, 75, 125, 150),
-                                          c("red", "red", "blue", "black", "black", "blue", "red")))
+        rec_color <- sapply(result_recovery(), is.numeric)
+        
+        datatable(result_recovery(),
+                  extensions = 'FixedColumns',
+                  options = list(
+                    pageLength = 20,
+                    dom = 't',
+                    scrollX = TRUE,
+                    fixedColumns = list(leftColumns = 3))) %>%
+          formatStyle(names(result_recovery()[rec_color]), 
+                      color = styleInterval(c(0, 25, 50, 75, 125, 150),
+                                            c("red", "red", "blue", "black", "black", "blue", "red")))
       }
     })
     

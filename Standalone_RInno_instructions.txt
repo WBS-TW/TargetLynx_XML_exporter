@@ -1,7 +1,8 @@
 
 create_app(
-  app_name    = "ML_exporter", 
-  app_dir     = "ML_XML_exporter",
-  pkgs        = c("jsonlite", "shiny", "magrittr", "shinydashboard", "xml2", "tidyverse", "DT", "pheatmap", "writexl"),  # CRAN-like repo packages
+  app_name    = "app", 
+  app_dir     = "app",
+  pkgs        = c("jsonlite", "shiny", "magrittr", "httr", "shinydashboard", "xml2", "tidyverse", "DT", "pheatmap", "writexl", "RColorBrewer"),  # CRAN-like repo packages
   include_R   = TRUE,     # Download R and install it with your app, if necessary
   default_dir = "pf")     # Install app in to Program Files
+)

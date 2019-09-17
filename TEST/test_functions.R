@@ -8,9 +8,8 @@ data <- read_xml("D:/R_projects/TargetLynx_XML_exporter/Data/MH16-001-PCBs_batch
 
 data <- read_xml("D:/R_projects/TargetLynx_XML_exporter/Data/TQS_FC_180615-fish_and_mammal_Greenland.xml")
 
+
 #### Extract the amounts (analconc) for all sample files ####
-
-
 
 
 #Get amounts from analconc node----------------------

@@ -4,6 +4,8 @@ library(xml2)
 library(pheatmap)
 library(DT)
 library(RColorBrewer)
+library(profvis)
+library(microbenchmark)
 #library(sloop) # for S3 OOP
 
 
@@ -18,7 +20,7 @@ table_comps <- NULL
 table_sample <- NULL
 table_amounts <- NULL
 
-
+profvis({ 
 sample_amounts <- for (i in 1:length_samples) {
   
   table_comps <- NULL
@@ -42,12 +44,68 @@ sample_amounts <- for (i in 1:length_samples) {
     mutate(sample_name = sample_name, sample_type = sample_type) %>% select(sample_name, sample_type, everything())
   table_amounts <- rbind(table_amounts, sample_comps)
   
-  rm(list = c("table_comp", "table_comps", "sample_comps"))
+  #rm(list = c("table_comp", "table_comps", "sample_comps"))
   
 }
+})
+
+
+## Fast vectorization of for loops
+
+ 
+
+#create xpath link to the SAMPLE node
+
+xpath_sample_name <- paste0("/QUANDATASET/GROUPDATA/GROUP/SAMPLELISTDATA/SAMPLE")
+xpath_cmpds_name <- paste0("/QUANDATASET/GROUPDATA/GROUP/SAMPLELISTDATA/SAMPLE[", 1, "]/COMPOUND")
+xpath_peak <- paste0("/QUANDATASET/GROUPDATA/GROUP/SAMPLELISTDATA/SAMPLE[", 1, "]/COMPOUND[", 1, "]/PEAK")
+
+sample_name <- unname(xml_attrs(xml_find_all(data, xpath_sample_name))[[1]]["name"])
+sample_type <- unname(xml_attrs(xml_find_all(data, xpath_sample_name))[[1]]["type"])
+compounds_name <- unname(xml_attrs(xml_find_all(data, xpath_cmpds_name))[[1]]["name"])
+analconc <- xml_attrs(xml_find_all(data, xpath_peak))[[1]][["analconc"]]
+
+
+length_cmpds <- length(xml_find_all(data, xpath_cmpds_name))
+length_samples <- length(xml_find_all(data, xpath_sample_name))
+
+cmpds <- length_cmpds
+
+df <- as_tibble(matrix(NA, ncol = sum(length_cmpds,2), nrow = length_samples))
+
+
+## for loop
+profvis({
+for (i in 1:length_samples) {
+  
+  sample_name <- unname(xml_attrs(xml_find_all(data, xpath_sample_name))[[i]]["name"])
+  sample_type <- unname(xml_attrs(xml_find_all(data, xpath_sample_name))[[i]]["type"])
+  colnames(df)[1] <- "sample_name"
+  colnames(df)[2] <- "sample_type"
+  
+  df[i, 1] <- sample_name
+  df[i, 2] <- sample_type
+  
+  
+  for (j in 1:length_cmpds) {
+    
+    xpath_peak <- paste0("/QUANDATASET/GROUPDATA/GROUP/SAMPLELISTDATA/SAMPLE[", i, "]/COMPOUND[", j, "]/PEAK")
+    compounds_name <- unname(xml_attrs(xml_find_all(data, xpath_cmpds_name))[[j]]["name"])
+    cmpds[j] <- compounds_name
+    colnames(df)[sum(j,2)] <- compounds_name
+    analconc <- xml_attrs(xml_find_all(data, xpath_peak))[[1]][["analconc"]]
+    df[i, sum(j,2)] <- analconc
+    
+  }
+}
+})
 
 
 
+# attributes
+
+
+'## END fast vectorization
 
 #### Extract the recoveries () for all sample files ####
 
@@ -181,6 +239,22 @@ pheatmap(mat, cluster_rows = FALSE, cluster_cols = FALSE, annotation_row = sampl
 
 
 
+
+## RInno
+
+install.packages(c("shiny", "jsonlite", "magrittr", "httr", "tidyverse", "shinydashboard", "xml2", "DT", "pheatmap", "writexl", "RColorBrewer"),
+                 lib = "D:/R_projects/Packages", dependencies = TRUE)
+
+create_app(
+  app_name    = "XML_export", # this just gives your app a name to use on various parts of your app  
+  app_dir     = "D:/R_projects/RInno_test/app", # location of my app
+  # pkgs        = c("shiny"),  # Don't use this argument
+  include_R   = TRUE,     # Download R and install it with your app
+  include_Rtools = TRUE,
+  privilege   = "lowest",   # Does not require Admin installation
+  default_dir = "userdesktop",  # Install to desktop to avoid issues with servers
+  #R_flags = '/SILENT'   # Install R 
+)
 
 
 
