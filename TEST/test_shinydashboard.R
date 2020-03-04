@@ -26,7 +26,8 @@ sidebar <- dashboardSidebar(
     menuItem(tags$b("Filtering"), tabName = "Filter", icon = icon("filter"),
              checkboxInput("CheckBlanks", "Exclude blanks"),
              checkboxInput("CheckStandards", "Exclude standards"),
-             numericInput("Decimal", "Number of decimals", value = 2)
+             numericInput("Decimal", "Number of decimals", value = 2),
+             uiOutput("Select1")
     ),
     hr(),
     menuItem(tags$b("Sample summary"), tabName = "Summary", icon = icon("chart-bar")),
@@ -195,6 +196,12 @@ server <- function(input, output, session) {
     
     
     # UI dashboard
+    
+    output$Select1 <- renderUI({
+      selectInput("Select_remove", "Remove:", choices = colnames(result_amount()), multiple = TRUE)
+    })
+
+    
     output$HeatmapScale <- renderUI({
       if (input$SelectSummaryPlots == "SummaryHeatmap") {
         selectInput("SelectHeatmapScale", "Scaling", choices = c("none", "row", "column"), selected = "none")

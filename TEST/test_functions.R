@@ -60,9 +60,76 @@ data <- read_xml("D:/R_projects/TargetLynx_XML_exporter/Data/TQS_FC_180615-fish_
 
 
 
-#profvis(expr = {
+profvis(expr = {
 test <- get_amounts(data = data)
-#})
+})
+
+
+
+#Faster get_amounts------------------------
+
+#Get amounts from analconc node----------------------
+
+get_amounts <- function(data, decimal = 2, blanks = FALSE, standards = FALSE) {
+  
+  data <- data
+  length_samples <- xml_length(xml_child(xml_child(xml_child(data, 3), 1), 2))
+  length_cmpds <- xml_length(xml_child(xml_child(xml_child(xml_child(data, 3), 1), 2), 1))-1L
+  
+  names_samples <- as.character(rep(NA, length_samples))
+  names_cmpds <- as.character(rep(NA, length_cmpds))
+  type_sample <- as.character(rep(NA, length_samples))
+  
+  
+  for (i in 1:length_samples) {
+    names_samples[i] <- xml_attrs(xml_child(xml_child(xml_child(xml_child(data, 3), 1), 2), i))[["name"]]
+    type_sample[i] <- xml_attrs(xml_child(xml_child(xml_child(xml_child(data, 3), 1), 2), i))[["type"]]
+  }
+  
+  
+  for (j in 1:length_cmpds) {
+    names_cmpds[j] <- xml_attrs(xml_child(xml_child(xml_child(xml_child(xml_child(data, 3), 1), 2), 1), j))[["name"]]
+  }
+  
+  
+  table_amounts <- matrix(nrow = length_samples, ncol = length_cmpds, dimnames = list(names_samples, names_cmpds))
+  
+  for (k in 1:length_samples) {
+    for (m in 1:length_cmpds) {
+      table_amounts[k,m] <- round(as.double(xml_attrs(xml_child(xml_child(xml_child(xml_child(xml_child(xml_child(data, 3), 1), 2), k), m), 1))[["analconc"]]), 2)
+    }
+  }
+  
+  
+  table_amounts <- as_tibble(table_amounts) %>%
+    mutate(sample_type = type_sample) %>%
+    mutate(sample_name = names_samples) %>%
+    select(sample_name, sample_type, everything()) %>%
+    filter(sample_type != "")  # delete empty rows
+  
+  if(standards == TRUE) {
+    table_amounts <- table_amounts %>%
+      filter(sample_type != "Standard")
+  }
+  if(blanks == TRUE) {
+    table_amounts <- table_amounts %>%
+      filter(sample_type != "Blank")
+  }
+  
+  return(table_amounts)
+}
+
+
+profvis(expr = {
+test <- get_amounts(data = data)
+})
+
+
+
+
+
+#-------------------------------------
+
 
 ### plot summary function
 
@@ -167,4 +234,8 @@ test_rec <- get_recovery(data)
 plot_recovery_heatmap(test_rec, scale = "none", cluster_rows = FALSE, cluster_cols = FALSE)
 
 
+### Remove IS and RS
+
+
+remove_ISRS 
 

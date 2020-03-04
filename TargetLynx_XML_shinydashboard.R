@@ -29,8 +29,8 @@ sidebar <- dashboardSidebar(
              numericInput("Decimal", "Number of decimals", value = 2)
     ),
     hr(),
-    menuItem(tags$b("Sample summary"), tabName = "Summary", icon = icon("chart-bar")),
-    selectInput("SelectSummaryPlots", "Select plot", choices = c("None", "SummaryScatter", "SummaryHeatmap"), selected = "SummaryHeatmap"),
+    menuItem(tags$b("Sample Amounts"), tabName = "Amounts", icon = icon("chart-bar")),
+    selectInput("SelectAmountsPlots", "Select plot", choices = c("None", "AmountsScatter", "AmountsHeatmap"), selected = "AmountsHeatmap"),
     uiOutput("HeatmapScale"),
     uiOutput("HeatmapClusterRows"),
     uiOutput("HeatmapClusterCols"),
@@ -108,13 +108,13 @@ body <- dashboardBody(
                            '))),
   
   tabItems(
-    # Summary tab content
-    tabItem(tabName = "Summary",
+    # Amounts tab content
+    tabItem(tabName = "Amounts",
             # fluidRow(
-            #   DT::dataTableOutput("SummaryTable")
+            #   DT::dataTableOutput("AmountsTable")
             # ),
             fluidRow(
-              uiOutput("SummaryPlot")
+              uiOutput("AmountsPlot")
             )
     ),
     
@@ -179,11 +179,11 @@ server <- function(input, output, session) {
     })
     
     
-    # output$SummaryTable <- DT::renderDataTable({
-    #   summary_tab <- result_amount() %>%
+    # output$AmountsTable <- DT::renderDataTable({
+    #   Amounts_tab <- result_amount() %>%
     #     group_by(sample_type) %>%
     #     summarise_if(is.numeric, mean)
-    #   DT::datatable(summary_tab,
+    #   DT::datatable(Amounts_tab,
     #                 extensions = 'FixedColumns',
     #                 options = list(
     #                   pageLength = 20,
@@ -196,17 +196,17 @@ server <- function(input, output, session) {
     
     # UI dashboard
     output$HeatmapScale <- renderUI({
-      if (input$SelectSummaryPlots == "SummaryHeatmap") {
+      if (input$SelectAmountsPlots == "AmountsHeatmap") {
         selectInput("SelectHeatmapScale", "Scaling", choices = c("none", "row", "column"), selected = "none")
       }
     })
     output$HeatmapClusterRows <- renderUI({
-      if (input$SelectSummaryPlots == "SummaryHeatmap") {
+      if (input$SelectAmountsPlots == "AmountsHeatmap") {
         checkboxInput("SelectHeatmapClusterRows", "Cluster rows")
       }
     })
     output$HeatmapClusterCols <- renderUI({
-      if (input$SelectSummaryPlots == "SummaryHeatmap") {
+      if (input$SelectAmountsPlots == "AmountsHeatmap") {
         checkboxInput("SelectHeatmapClusterCols", "Cluster columns")
       }
     })
@@ -214,22 +214,22 @@ server <- function(input, output, session) {
     
     # Plots
     # Amounts
-    output$SummaryPlot <- renderUI(
-      if (input$SelectSummaryPlots == "SummaryScatter") {
-        plotOutput("UISummaryPlot", height = 700)
-      } else if (input$SelectSummaryPlots == "SummaryHeatmap") {
-        plotOutput("UISummaryPlot", height = 700)
-      } else if (input$SelectSummaryPlots == "None") {
+    output$AmountsPlot <- renderUI(
+      if (input$SelectAmountsPlots == "AmountsScatter") {
+        plotOutput("UIAmountsPlot", height = 700)
+      } else if (input$SelectAmountsPlots == "AmountsHeatmap") {
+        plotOutput("UIAmountsPlot", height = 700)
+      } else if (input$SelectAmountsPlots == "None") {
         NULL
       })
     
-    output$UISummaryPlot <- renderPlot({
-      if (input$SelectSummaryPlots == "SummaryScatter") {
-        plot_summary(result_amount())
-      } else if (input$SelectSummaryPlots == "SummaryHeatmap") {
+    output$UIAmountsPlot <- renderPlot({
+      if (input$SelectAmountsPlots == "AmountsScatter") {
+        plot_Amounts(result_amount())
+      } else if (input$SelectAmountsPlots == "AmountsHeatmap") {
         plot_heatmap(result_amount(), scale = input$SelectHeatmapScale, 
                      cluster_rows = input$SelectHeatmapClusterRows, cluster_cols = input$SelectHeatmapClusterCols)
-      } else if (input$SelectSummaryPlots == "None") {
+      } else if (input$SelectAmountsPlots == "None") {
         NULL
       }
     })
@@ -268,7 +268,7 @@ server <- function(input, output, session) {
     
     output$UIRecoveryPlot <- renderPlot({
       if (input$SelectRecoveryPlots == "RecoveryScatter") {
-        plot_summary(result_recovery())
+        plot_Amounts(result_recovery())
       } else if (input$SelectRecoveryPlots == "RecoveryHeatmap") {
         plot_recovery_heatmap(result_recovery(), scale = "none", cluster_rows = FALSE, cluster_cols = FALSE)
       }

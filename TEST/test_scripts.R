@@ -44,38 +44,26 @@ sample_amounts <- for (i in 1:length_samples) {
     mutate(sample_name = sample_name, sample_type = sample_type) %>% select(sample_name, sample_type, everything())
   table_amounts <- rbind(table_amounts, sample_comps)
   
-  #rm(list = c("table_comp", "table_comps", "sample_comps"))
+  rm(list = c("table_comp", "table_comps", "sample_comps"))
   
 }
 })
 
 
-## Fast vectorization of for loops
-
- 
-
-#create xpath link to the SAMPLE node
-
+#####create xpath link to the SAMPLE node
+profvis({
 xpath_sample_name <- paste0("/QUANDATASET/GROUPDATA/GROUP/SAMPLELISTDATA/SAMPLE")
 xpath_cmpds_name <- paste0("/QUANDATASET/GROUPDATA/GROUP/SAMPLELISTDATA/SAMPLE[", 1, "]/COMPOUND")
 xpath_peak <- paste0("/QUANDATASET/GROUPDATA/GROUP/SAMPLELISTDATA/SAMPLE[", 1, "]/COMPOUND[", 1, "]/PEAK")
 
-sample_name <- unname(xml_attrs(xml_find_all(data, xpath_sample_name))[[1]]["name"])
-sample_type <- unname(xml_attrs(xml_find_all(data, xpath_sample_name))[[1]]["type"])
-compounds_name <- unname(xml_attrs(xml_find_all(data, xpath_cmpds_name))[[1]]["name"])
-analconc <- xml_attrs(xml_find_all(data, xpath_peak))[[1]][["analconc"]]
-
-
 length_cmpds <- length(xml_find_all(data, xpath_cmpds_name))
 length_samples <- length(xml_find_all(data, xpath_sample_name))
-
-cmpds <- length_cmpds
-
 df <- as_tibble(matrix(NA, ncol = sum(length_cmpds,2), nrow = length_samples))
-
+compounds_name <- as.character(rep(NA, length_cmpds))
 
 ## for loop
-profvis({
+
+
 for (i in 1:length_samples) {
   
   sample_name <- unname(xml_attrs(xml_find_all(data, xpath_sample_name))[[i]]["name"])
@@ -90,22 +78,62 @@ for (i in 1:length_samples) {
   for (j in 1:length_cmpds) {
     
     xpath_peak <- paste0("/QUANDATASET/GROUPDATA/GROUP/SAMPLELISTDATA/SAMPLE[", i, "]/COMPOUND[", j, "]/PEAK")
-    compounds_name <- unname(xml_attrs(xml_find_all(data, xpath_cmpds_name))[[j]]["name"])
-    cmpds[j] <- compounds_name
-    colnames(df)[sum(j,2)] <- compounds_name
-    analconc <- xml_attrs(xml_find_all(data, xpath_peak))[[1]][["analconc"]]
+    compounds_name[j] <- xml_attr(xml_find_first(data, paste0("/QUANDATASET/GROUPDATA/GROUP/SAMPLELISTDATA/SAMPLE[1]/COMPOUND[", j, "]")), "name")
+    colnames(df)[sum(j,2)] <- compounds_name[j]
+    analconc <- xml_attr(xml_find_first(data, xpath_peak), "analconc")
     df[i, sum(j,2)] <- analconc
     
   }
 }
 })
 
+## END fast vectorization 1
 
 
-# attributes
+## Fast vectorization 2
+
+length_samples <- xml_length(xml_child(xml_child(xml_child(data, 3), 1), 2))
+length_cmpds <- xml_length(xml_child(xml_child(xml_child(xml_child(data, 3), 1), 2), 1))-1L
+
+names_samples <- as.character(rep(NA, length_samples))
+names_cmpds <- as.character(rep(NA, length_cmpds))
+type_sample <- as.character(rep(NA, length_samples))
 
 
-'## END fast vectorization
+for (i in 1:length_samples) {
+  names_samples[i] <- xml_attrs(xml_child(xml_child(xml_child(xml_child(data, 3), 1), 2), i))[["name"]]
+  type_sample[i] <- xml_attrs(xml_child(xml_child(xml_child(xml_child(data, 3), 1), 2), i))[["type"]]
+}
+
+
+for (j in 1:length_cmpds) {
+  names_cmpds[j] <- xml_attrs(xml_child(xml_child(xml_child(xml_child(xml_child(data, 3), 1), 2), 1), j))[["name"]]
+}
+
+
+table_amounts <- matrix(nrow = length_samples, ncol = length_cmpds, dimnames = list(names_samples, names_cmpds))
+
+
+for (k in 1:length_samples) {
+ for (m in 1:length_cmpds) {
+   table_amounts[k,m] <-as.double(xml_attrs(xml_child(xml_child(xml_child(xml_child(xml_child(xml_child(data, 3), 1), 2), k), m), 1))[["analconc"]])
+ }
+}
+
+# find_analconc <- function(x, y){
+#   table_amounts <- as_tibble(matrix(nrow = length_samples, ncol = length_cmpds, dimnames = list(names_samples, names_cmpds)))
+#   analconc <- xml_attrs(xml_child(xml_child(xml_child(xml_child(xml_child(xml_child(data, 3), 1), 2), x), y), 1))[["analconc"]]
+#   table_amounts <- as.data.frame(analconc)
+#   return(table_amounts)
+# }
+
+
+table_amounts <- as_tibble(table_amounts) %>%
+  mutate(sample_type = type_sample) %>%
+  mutate(sample_name = names_samples) %>%
+  select(sample_name, sample_type, everything())
+
+
 
 #### Extract the recoveries () for all sample files ####
 
@@ -141,6 +169,9 @@ sample_recovery <- for (i in 1:length_samples) {
   rm(list = c("table_comp", "table_comps", "sample_comps"))
   
 }
+
+
+## END of recoveries
 
 rec_color <- sapply(table_recovery, is.numeric)
 
@@ -236,6 +267,7 @@ pheatmap(mat, cluster_rows = FALSE, cluster_cols = FALSE, annotation_row = sampl
 
 
 
+### Remove IS and RS
 
 
 
@@ -257,9 +289,5 @@ create_app(
 )
 
 
-
-
-
-
-
+## END RInno
 
